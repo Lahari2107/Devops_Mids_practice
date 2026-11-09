@@ -1,0 +1,2506 @@
+# DevOps Lab Practical – Complete Execution Guide (Sets 1–9)
+
+## 0. Common setup before starting the experiments
+
+### Software required
+
+- Docker Desktop
+- Git and GitHub account
+- Jenkins
+- Java JDK 17 or later
+- Apache NetBeans IDE
+- Node.js and npm
+- Python 3
+- Selenium WebDriver
+- Google Chrome or Microsoft Edge
+- Minikube
+- kubectl
+
+### Common working directory
+
+Use this folder throughout the experiments:
+
+```powershell
+C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2
+```
+
+**[PowerShell – execute this first]**
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Check the installed software
+
+**[PowerShell]**
+
+```powershell
+docker --version
+git --version
+java -version
+javac -version
+node --version
+npm --version
+python --version
+kubectl version --client
+minikube version
+```
+
+If a command is not recognized, that software may not be installed or may not be added to PATH.
+
+---
+
+# SET 1 – Docker Basics and Installation
+
+## Question A: Write the terminal commands to explore Docker commands for content management by pulling a base image and listing active containers.
+
+### Step 1: Start Docker Desktop
+
+1. Open Docker Desktop.
+2. Wait until Docker Engine is running.
+3. Open PowerShell.
+
+### Step 2: Verify Docker installation
+
+**[PowerShell]**
+
+```powershell
+docker --version
+```
+
+### Step 3: Download a base image
+
+```powershell
+docker pull nginx:latest
+```
+
+Explanation:
+- `docker pull` downloads an image.
+- `nginx` is the image name.
+- `latest` specifies the latest available tag.
+
+### Step 4: List downloaded images
+
+```powershell
+docker images
+```
+
+You should see the Nginx image.
+
+### Step 5: Create and run a container
+
+```powershell
+docker run -d --name mynginx -p 8080:80 nginx:latest
+```
+
+Explanation:
+- `-d` runs the container in the background.
+- `--name mynginx` assigns a name.
+- `-p 8080:80` maps host port 8080 to container port 80.
+- `nginx:latest` specifies the image.
+
+### Step 6: List active containers
+
+```powershell
+docker ps
+```
+
+### Step 7: List all containers
+
+```powershell
+docker ps -a
+```
+
+### Step 8: Open the application
+
+**[Browser]**
+
+```text
+http://localhost:8080
+```
+
+You should see the Nginx welcome page.
+
+### Step 9: Stop the container
+
+**[PowerShell]**
+
+```powershell
+docker stop mynginx
+```
+
+### Step 10: Remove the container
+
+```powershell
+docker rm mynginx
+```
+
+### Step 11: Remove the image (optional)
+
+```powershell
+docker rmi nginx:latest
+```
+
+Only remove the image if you no longer need it.
+
+---
+
+## Question B: Write the step-by-step terminal commands to check Docker installation steps and verify the version on your machine.
+
+### Step 1: Download Docker Desktop
+
+**[Browser]**
+
+Open:
+
+https://www.docker.com/products/docker-desktop/
+
+Download Docker Desktop for Windows.
+
+### Step 2: Install Docker Desktop
+
+1. Run the downloaded installer.
+2. Follow the installation instructions.
+3. Enable the WSL 2 option if the installer asks for it and your system supports it.
+4. Complete installation.
+5. Restart the computer if requested.
+
+### Step 3: Start Docker Desktop
+
+Open Docker Desktop and wait for Docker Engine to start.
+
+### Step 4: Verify Docker version
+
+**[PowerShell]**
+
+```powershell
+docker --version
+```
+
+### Step 5: Check Docker information
+
+```powershell
+docker info
+```
+
+### Step 6: Run the test container
+
+```powershell
+docker run hello-world
+```
+
+Expected result: Docker displays a message confirming that the installation is working.
+
+### Step 7: List images and containers
+
+```powershell
+docker images
+docker ps
+docker ps -a
+```
+
+---
+
+## Viva: What is a hosted Git server, and how does it help teams manage source code?
+
+A hosted Git server is a platform that stores Git repositories on a remote server and allows developers to collaborate on source code.
+
+Examples:
+- GitHub
+- GitLab
+- Bitbucket
+
+It helps teams by providing:
+
+1. **Version control:** Maintains the history of source code changes.
+2. **Collaboration:** Multiple developers can work on the same project.
+3. **Branching:** Developers can work on separate features without affecting the main code.
+4. **Pull requests:** Developers can propose changes for review.
+5. **Backup:** Stores the project remotely.
+6. **Access control:** Allows administrators to control who can view or modify repositories.
+
+---
+
+# SET 2 – Dockerfile and Containerized Application
+
+## Question A: Write a Dockerfile to create a custom containerized application.
+
+### Aim
+
+To create a Docker image for an Event Registration Form using Nginx.
+
+### Step 1: Open the working directory
+
+**[PowerShell]**
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 2: Create the HTML file
+
+**[VS Code – create a new file named `EventRegistrationForm.html`]**
+
+Copy and save the following code:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration Form</title>
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            padding: 30px;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
+            border-radius: 8px;
+        }
+
+        input {
+            width: 95%;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #successmsg {
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form id="registrationForm">
+        <h2>Event Registration</h2>
+
+        <label>First Name</label>
+        <input type="text" id="firstName" required>
+
+        <label>Last Name</label>
+        <input type="text" id="lastName" required>
+
+        <label>Email</label>
+        <input type="email" id="email" required>
+
+        <label>Phone Number</label>
+        <input type="tel" id="phNo" required>
+
+        <button type="submit" id="submitBtn">Register</button>
+
+        <p id="successmsg"></p>
+    </form>
+
+    <script>
+        document.getElementById("registrationForm")
+            .addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                document.getElementById("successmsg").innerText =
+                    "Thank You For Registering :)";
+            });
+    </script>
+
+</body>
+</html>
+```
+
+**Important:** This HTML file includes the `successmsg` element and JavaScript submit handler. Later Selenium experiments use them to verify successful registration.
+
+### Step 3: Create the Dockerfile
+
+**[VS Code – create a new file named exactly `Dockerfile`, without `.txt`]**
+
+```dockerfile
+# Use the official Nginx image
+FROM nginx:latest
+
+# Copy the HTML file into the Nginx web directory
+COPY EventRegistrationForm.html /usr/share/nginx/html/index.html
+
+# Document the container port
+EXPOSE 8082
+```
+
+**Important:** Nginx listens on port 80 by default. `EXPOSE 8082` does not change its listening port. We will map host port 8082 to container port 80 when running it.
+
+### Step 4: Check the files
+
+**[PowerShell]**
+
+```powershell
+dir
+```
+
+Make sure both files are present:
+
+```text
+EventRegistrationForm.html
+Dockerfile
+```
+
+### Step 5: Build the Docker image
+
+```powershell
+docker build -t event-registration:v1 .
+```
+
+Explanation:
+- `docker build` builds an image.
+- `-t` assigns a name and tag.
+- `event-registration:v1` is the image name and version.
+- `.` specifies the current folder as the build context.
+
+### Step 6: Verify the image
+
+```powershell
+docker images
+```
+
+You should see `event-registration` with tag `v1`.
+
+---
+
+## Question B: Build a Docker image with a custom tag and run it on a specific port.
+
+### Step 1: Build the image
+
+**[PowerShell – execute inside the folder containing Dockerfile]**
+
+```powershell
+docker build -t event-registration:v1 .
+```
+
+### Step 2: Run the container
+
+```powershell
+docker run -d --name registration-app -p 8082:80 event-registration:v1
+```
+
+### Step 3: Verify the running container
+
+```powershell
+docker ps
+```
+
+### Step 4: Open the application
+
+**[Browser]**
+
+```text
+http://localhost:8082
+```
+
+You should see the Event Registration Form.
+
+### Step 5: Test the form
+
+1. Enter a first name.
+2. Enter a last name.
+3. Enter an email address.
+4. Enter a phone number.
+5. Click Register.
+6. Verify that the success message appears.
+
+### Step 6: View container logs
+
+**[PowerShell]**
+
+```powershell
+docker logs registration-app
+```
+
+### Step 7: Stop and remove the container
+
+```powershell
+docker stop registration-app
+docker rm registration-app
+```
+
+### Step 8: Remove the image (optional)
+
+```powershell
+docker rmi event-registration:v1
+```
+
+Do not remove the image if you need it for the Kubernetes experiments.
+
+---
+
+## Viva: Explain the pull request model in GitLab.
+
+A pull request is a request to merge changes from one branch into another branch. In GitLab, it is called a **Merge Request**.
+
+Steps:
+
+1. Create a new branch.
+2. Make code changes.
+3. Commit the changes.
+4. Push the branch to GitLab.
+5. Create a Merge Request.
+6. Team members review the code.
+7. Requested corrections are made.
+8. The changes are approved and merged into the target branch.
+
+Benefits:
+- Supports collaboration.
+- Enables code review.
+- Helps identify errors.
+- Maintains code quality.
+- Prevents unreviewed changes from directly entering the main branch.
+
+---
+
+# SET 3 – Integrating Docker with Kubernetes
+
+## Question A: Explain how to integrate Kubernetes and Docker using local container images.
+
+### Aim
+
+To build a Docker image and make it available inside a local Kubernetes cluster using Minikube.
+
+### Step 1: Start Docker Desktop
+
+Open Docker Desktop and wait until the Docker Engine is running.
+
+### Step 2: Verify Docker
+
+**[PowerShell]**
+
+```powershell
+docker --version
+```
+
+### Step 3: Verify Minikube
+
+```powershell
+minikube version
+```
+
+### Step 4: Verify kubectl
+
+```powershell
+kubectl version --client
+```
+
+### Step 5: Start Minikube
+
+```powershell
+minikube start --driver=docker
+```
+
+Wait for Minikube to finish starting. The first start may take several minutes.
+
+### Step 6: Check Minikube status
+
+```powershell
+minikube status
+```
+
+### Step 7: Check Kubernetes nodes
+
+```powershell
+kubectl get nodes
+```
+
+Expected status:
+
+```text
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   ...   ...
+```
+
+### Step 8: Navigate to the application directory
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 9: Build the Docker image
+
+```powershell
+docker build -t event-registration:v1 .
+```
+
+### Step 10: Verify the image
+
+```powershell
+docker images
+```
+
+### Step 11: Load the image into Minikube
+
+```powershell
+minikube image load event-registration:v1
+```
+
+### Step 12: Verify that the image is available in Minikube
+
+```powershell
+minikube image ls
+```
+
+### Step 13: Check cluster information
+
+```powershell
+kubectl cluster-info
+```
+
+### Step 14: Verify the node again
+
+```powershell
+kubectl get nodes
+```
+
+### Step 15: Check the pods
+
+```powershell
+kubectl get pods -A
+```
+
+**Result:** Docker is integrated with the local Kubernetes environment. The locally built image is loaded into Minikube and is available for Kubernetes deployment.
+
+**Note:** This experiment focuses on integration and image loading. Deployment and Service YAML files are covered in Set 4.
+
+---
+
+## Question B: Write a container setup script for a Docker application to prepare it for a Kubernetes cluster.
+
+### Step 1: Create the setup script
+
+**[VS Code – create a new file named `setup-kubernetes.ps1`]**
+
+Paste:
+
+```powershell
+# Display the Docker version
+Write-Host "Checking Docker..."
+
+docker --version
+
+# Start Minikube
+Write-Host "Starting Minikube..."
+
+minikube start --driver=docker
+
+# Check Minikube status
+Write-Host "Checking Minikube status..."
+
+minikube status
+
+# Build the application image
+Write-Host "Building Docker image..."
+
+docker build -t event-registration:v1 .
+
+# Load the image into Minikube
+Write-Host "Loading image into Minikube..."
+
+minikube image load event-registration:v1
+
+# Display Kubernetes nodes
+Write-Host "Checking Kubernetes nodes..."
+
+kubectl get nodes
+
+# Display images available in Minikube
+Write-Host "Checking Minikube images..."
+
+minikube image ls
+
+Write-Host "Kubernetes setup completed."
+```
+
+### Step 2: Save the script
+
+Save it in the same directory as the Dockerfile and HTML file.
+
+### Step 3: Open PowerShell in that directory
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 4: Execute the script
+
+```powershell
+.\setup-kubernetes.ps1
+```
+
+If PowerShell blocks script execution, execute the following command for the current PowerShell session:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+Then run:
+
+```powershell
+.\setup-kubernetes.ps1
+```
+
+### Step 5: Verify the result
+
+```powershell
+minikube status
+kubectl get nodes
+minikube image ls
+```
+
+---
+
+## Viva: What is job chaining in build pipelines?
+
+Job chaining is the process of connecting multiple jobs in a build pipeline so that one job starts after another job completes successfully.
+
+Example:
+
+```text
+Build → Test → Package → Deploy
+```
+
+Explanation:
+
+1. **Build:** Compiles the application.
+2. **Test:** Executes test cases.
+3. **Package:** Creates the final application package or image.
+4. **Deploy:** Deploys the application to the target environment.
+
+Benefits:
+- Automates the development process.
+- Reduces manual work.
+- Maintains the correct execution order.
+- Detects errors early.
+- Improves software delivery speed.
+
+Jenkins supports job chaining through build triggers and pipeline stages.
+
+---
+
+# SET 4 – Kubernetes Deployment and Service
+
+## Question A: Write a Kubernetes Deployment YAML file to deploy an application.
+
+### Aim
+
+To deploy the Event Registration application in Kubernetes using a Deployment.
+
+### Step 1: Start Docker Desktop
+
+Wait until Docker Engine is running.
+
+### Step 2: Start Minikube
+
+**[PowerShell]**
+
+```powershell
+minikube start --driver=docker
+```
+
+### Step 3: Navigate to the project directory
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 4: Build the Docker image
+
+```powershell
+docker build -t event-registration:v1 .
+```
+
+### Step 5: Load the image into Minikube
+
+```powershell
+minikube image load event-registration:v1
+```
+
+### Step 6: Create the Deployment YAML file
+
+**[VS Code – create a file named `deployment.yaml`]**
+
+Paste:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: registration-deployment
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: registration
+
+  template:
+    metadata:
+      labels:
+        app: registration
+
+    spec:
+      containers:
+        - name: registration-container
+          image: event-registration:v1
+          imagePullPolicy: Never
+
+          ports:
+            - containerPort: 80
+```
+
+### Step 7: Apply the Deployment
+
+**[PowerShell – execute in the folder containing deployment.yaml]**
+
+```powershell
+kubectl apply -f deployment.yaml
+```
+
+### Step 8: Check the Deployment
+
+```powershell
+kubectl get deployments
+```
+
+### Step 9: Check the pods
+
+```powershell
+kubectl get pods
+```
+
+You should see two application pods because `replicas: 2` is specified.
+
+### Step 10: Describe the Deployment
+
+```powershell
+kubectl describe deployment registration-deployment
+```
+
+### Step 11: Scale the Deployment (optional)
+
+```powershell
+kubectl scale deployment registration-deployment --replicas=3
+```
+
+Verify:
+
+```powershell
+kubectl get pods
+```
+
+---
+
+## Question B: Write a Kubernetes Service YAML file to expose the application externally.
+
+### Step 1: Create the Service YAML file
+
+**[VS Code – create a file named `service.yaml`]**
+
+Paste:
+
+```yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: registration-service
+
+spec:
+  type: NodePort
+
+  selector:
+    app: registration
+
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+      protocol: TCP
+```
+
+### Step 2: Apply the Service
+
+**[PowerShell]**
+
+```powershell
+kubectl apply -f service.yaml
+```
+
+### Step 3: Verify the Service
+
+```powershell
+kubectl get services
+```
+
+### Step 4: Check the details
+
+```powershell
+kubectl describe service registration-service
+```
+
+### Step 5: Open the Service
+
+**[PowerShell]**
+
+```powershell
+minikube service registration-service --url
+```
+
+Minikube displays a URL. Open that URL in your browser.
+
+If the command keeps the PowerShell process occupied while forwarding traffic, leave it running while you test the application.
+
+### Step 6: Test the application
+
+**[Browser]**
+
+Open the URL printed by Minikube.
+
+You should see the Event Registration Form.
+
+### Step 7: Check the resources
+
+**[PowerShell]**
+
+```powershell
+kubectl get deployments
+kubectl get pods
+kubectl get services
+```
+
+### Step 8: Delete the resources (optional cleanup)
+
+```powershell
+kubectl delete service registration-service
+kubectl delete deployment registration-deployment
+```
+
+---
+
+## Viva: What are build server dependencies and plugins?
+
+A build server is a system that automatically builds, tests, and deploys software.
+
+Examples include Jenkins, GitLab CI/CD, and TeamCity.
+
+**Dependencies** are external libraries or software components required by a project to build and run successfully.
+
+Examples:
+- Java libraries
+- Maven dependencies
+- Selenium libraries
+- Node.js packages
+
+**Plugins** are extensions that add additional features to the build server.
+
+Examples of Jenkins plugins:
+- Git plugin
+- Maven Integration plugin
+- Pipeline plugin
+- Docker plugin
+- HTML Publisher plugin
+
+Benefits:
+1. Automates build processes.
+2. Integrates with source control.
+3. Supports testing and deployment.
+4. Reduces manual work.
+5. Extends build server functionality.
+
+---
+
+# SET 5 – Selenium WebDriver Installation and Browser Automation
+
+## Question A: Write the steps to install Selenium WebDriver.
+
+### Aim
+
+To install Selenium WebDriver and configure the environment for browser automation using Java.
+
+### Step 1: Check Java installation
+
+**[PowerShell]**
+
+```powershell
+java -version
+javac -version
+```
+
+If Java is not installed, install JDK 17 or later.
+
+### Step 2: Download JDK
+
+**[Browser]**
+
+https://www.oracle.com/java/technologies/downloads/
+
+Install the JDK and configure PATH if necessary.
+
+### Step 3: Install NetBeans IDE
+
+**[Browser]**
+
+https://netbeans.apache.org/front/main/download/
+
+Download and install Apache NetBeans.
+
+### Step 4: Install a browser
+
+Install Microsoft Edge or Google Chrome.
+
+### Step 5: Create a Java project
+
+**[NetBeans IDE]**
+
+1. Open NetBeans.
+2. Select File → New Project.
+3. Select Java with Maven.
+4. Select Java Application.
+5. Click Next.
+6. Enter the project name:
+
+```text
+SeleniumDemo
+```
+
+7. Click Finish.
+
+### Step 6: Add Selenium dependency
+
+**[NetBeans – open `pom.xml`]**
+
+Add the following dependency inside the `<dependencies>` section:
+
+```xml
+<dependency>
+    <groupId>org.seleniumhq.selenium</groupId>
+    <artifactId>selenium-java</artifactId>
+    <version>4.27.0</version>
+</dependency>
+```
+
+If there is no `<dependencies>` section, add one inside the main `<project>` element.
+
+### Step 7: Reload Maven dependencies
+
+In NetBeans:
+
+1. Right-click the project.
+2. Select Reload Project or Build, depending on the available menu.
+3. Wait for Maven to download Selenium dependencies.
+
+### Step 8: Create a Java class
+
+**[NetBeans – create `FirstSeleniumPro.java` inside the project's source package]**
+
+Paste:
+
+```java
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+
+public class FirstSeleniumPro {
+
+    public static void main(String[] args) {
+
+        WebDriver driver = new EdgeDriver();
+
+        try {
+            driver.get("https://www.google.com");
+
+            System.out.println("Title: " + driver.getTitle());
+
+            Thread.sleep(5000);
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+
+        } finally {
+            driver.quit();
+        }
+    }
+}
+```
+
+Selenium Manager in modern Selenium versions can automatically manage compatible browser drivers in many setups.
+
+### Step 9: Run the program
+
+**[NetBeans]**
+
+Right-click `FirstSeleniumPro.java` and select Run File.
+
+Expected behavior:
+- Edge opens.
+- Google loads.
+- The page title is printed in the Output window.
+- The browser closes after approximately five seconds.
+
+---
+
+## Question B: Write a Selenium script to launch a browser, open a webpage, and verify its title.
+
+### Step 1: Create the Java class
+
+**[NetBeans – create `VerifyTitle.java`]**
+
+```java
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+
+public class VerifyTitle {
+
+    public static void main(String[] args) {
+
+        WebDriver driver = new EdgeDriver();
+
+        try {
+            driver.get("https://www.google.com");
+
+            String actualTitle = driver.getTitle();
+
+            System.out.println("Page Title: " + actualTitle);
+
+            if (actualTitle.toLowerCase().contains("google")) {
+                System.out.println("Title verification successful");
+            } else {
+                System.out.println("Title verification failed");
+            }
+
+        } finally {
+            driver.quit();
+        }
+    }
+}
+```
+
+### Step 2: Execute the program
+
+**[NetBeans]**
+
+Right-click the file and select Run File.
+
+### Step 3: Verify the output
+
+The browser should open Google, and the Output window should display the page title and verification result.
+
+---
+
+## Viva: What are the key features of Selenium?
+
+Selenium is an open-source tool used to automate web browsers and test web applications.
+
+Key features:
+
+1. **Open source:** Selenium is freely available.
+2. **Cross-browser support:** Supports browsers such as Chrome, Firefox, and Edge.
+3. **Multiple language support:** Supports Java, Python, JavaScript, C#, and others.
+4. **WebDriver:** Provides direct interaction with browser elements.
+5. **Locators:** Identifies elements using ID, name, class name, XPath, and CSS selectors.
+6. **Cross-platform:** Can run on Windows, Linux, and macOS.
+7. **Selenium Grid:** Supports parallel execution across different browsers and machines.
+8. **Framework integration:** Can be integrated with testing frameworks such as TestNG and JUnit.
+
+---
+
+# SET 6 – JavaScript Program and Selenium Testing
+
+## Question A: Write a simple JavaScript program and test it using Selenium.
+
+### Aim
+
+To develop a simple JavaScript application and test it using Selenium WebDriver.
+
+### Step 1: Create an HTML file
+
+**[VS Code – create `calculator.html`]**
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Calculator</title>
+</head>
+
+<body>
+
+    <h2>Simple Addition</h2>
+
+    <label>First Number:</label>
+    <input type="number" id="num1">
+
+    <br><br>
+
+    <label>Second Number:</label>
+    <input type="number" id="num2">
+
+    <br><br>
+
+    <button id="addBtn" onclick="addNumbers()">Add</button>
+
+    <h3 id="result"></h3>
+
+    <script>
+        function addNumbers() {
+
+            let a = Number(document.getElementById("num1").value);
+
+            let b = Number(document.getElementById("num2").value);
+
+            let sum = a + b;
+
+            document.getElementById("result").innerText =
+                "Result: " + sum;
+        }
+    </script>
+
+</body>
+</html>
+```
+
+### Step 2: Create a JavaScript Selenium project
+
+**[PowerShell – execute in the working directory]**
+
+```powershell
+mkdir SeleniumJS
+cd SeleniumJS
+```
+
+### Step 3: Initialize Node.js
+
+```powershell
+npm init -y
+```
+
+This creates a `package.json` file.
+
+### Step 4: Install Selenium WebDriver
+
+```powershell
+npm install selenium-webdriver
+```
+
+### Step 5: Create the test file
+
+**[VS Code – create `test.js` inside the `SeleniumJS` folder]**
+
+```javascript
+const { Builder, By } = require('selenium-webdriver');
+const edge = require('selenium-webdriver/edge');
+
+async function testCalculator() {
+
+    let driver = await new Builder()
+        .forBrowser('MicrosoftEdge')
+        .setEdgeOptions(new edge.Options())
+        .build();
+
+    try {
+
+        await driver.get(
+            'file:///C:/Users/lahar/OneDrive/Desktop/DevOps_Mid1_practice/mid2/calculator.html'
+        );
+
+        await driver.findElement(By.id('num1')).sendKeys('10');
+
+        await driver.findElement(By.id('num2')).sendKeys('20');
+
+        await driver.findElement(By.id('addBtn')).click();
+
+        let result = await driver.findElement(By.id('result')).getText();
+
+        console.log(result);
+
+    } finally {
+
+        await driver.quit();
+
+    }
+}
+
+testCalculator();
+```
+
+**Important:** If your working directory is different, change the `file:///` address to the actual location of `calculator.html`. Use forward slashes in the file URL.
+
+### Step 6: Run the Selenium test
+
+**[PowerShell – execute inside the `SeleniumJS` folder]**
+
+```powershell
+node test.js
+```
+
+Expected output:
+
+```text
+Result: 30
+```
+
+---
+
+## Question B: Write a JavaScript Selenium program to locate a form element by ID and click it.
+
+### Step 1: Use the HTML file
+
+Use the `calculator.html` file created in Question A. The button has the ID `addBtn`.
+
+### Step 2: Create the Selenium script
+
+**[VS Code – create `clickButton.js` inside `SeleniumJS`]**
+
+```javascript
+const { Builder, By } = require('selenium-webdriver');
+const edge = require('selenium-webdriver/edge');
+
+async function clickButton() {
+
+    let driver = await new Builder()
+        .forBrowser('MicrosoftEdge')
+        .setEdgeOptions(new edge.Options())
+        .build();
+
+    try {
+
+        await driver.get(
+            'file:///C:/Users/lahar/OneDrive/Desktop/DevOps_Mid1_practice/mid2/calculator.html'
+        );
+
+        let button = await driver.findElement(By.id('addBtn'));
+
+        await button.click();
+
+        console.log("Button clicked successfully");
+
+    } finally {
+
+        await driver.quit();
+
+    }
+}
+
+clickButton();
+```
+
+### Step 3: Run the program
+
+**[PowerShell – inside `SeleniumJS`]**
+
+```powershell
+node clickButton.js
+```
+
+**Note:** The calculator's two input fields are empty in this second script, so clicking the button will calculate using their empty values. The main purpose of this question is to demonstrate locating and clicking a button by its ID.
+
+---
+
+## Viva: Explain JavaScript testing and Selenium integration.
+
+JavaScript testing is the process of checking whether JavaScript code works correctly and produces the expected output.
+
+Selenium is used to automate browser interactions and test web applications.
+
+Integration process:
+
+1. Develop the webpage using HTML and JavaScript.
+2. Install Selenium WebDriver.
+3. Launch the browser using Selenium.
+4. Open the webpage.
+5. Locate elements using IDs or other locators.
+6. Perform actions such as entering text and clicking buttons.
+7. Verify the result.
+8. Close the browser.
+
+Benefits:
+- Automates repetitive testing.
+- Reduces manual testing.
+- Detects errors.
+- Improves application quality.
+
+---
+
+# SET 7 – Selenium Form Automation and Validation
+
+## Question A: Write a Selenium program to enter text into registration form fields and submit the form.
+
+### Aim
+
+To automate the Event Registration Form using Selenium WebDriver.
+
+### Step 1: Start the Event Registration application
+
+If the Docker container from Set 2 is already running, skip to Step 3.
+
+**[PowerShell – in the main working directory]**
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 2: Build and run the application if required
+
+```powershell
+docker build -t event-registration:v1 .
+```
+
+```powershell
+docker run -d --name registration-app -p 8082:80 event-registration:v1
+```
+
+If Docker reports that the container name is already in use, check:
+
+```powershell
+docker ps -a
+```
+
+If the existing container is stopped, start it:
+
+```powershell
+docker start registration-app
+```
+
+### Step 3: Verify the application
+
+**[Browser]**
+
+```text
+http://localhost:8082
+```
+
+### Step 4: Install Python Selenium
+
+**[PowerShell]**
+
+```powershell
+pip install selenium
+```
+
+### Step 5: Create the Selenium test file
+
+**[VS Code – create `test_registration.py` in the main working directory]**
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+# Launch Microsoft Edge
+driver = webdriver.Edge()
+
+try:
+
+    # Open the registration application
+    driver.get("http://localhost:8082")
+
+    # Enter registration details
+    driver.find_element(By.ID, "firstName").send_keys("Lahari")
+
+    driver.find_element(By.ID, "lastName").send_keys("K")
+
+    driver.find_element(By.ID, "email").send_keys("lahari@example.com")
+
+    driver.find_element(By.ID, "phNo").send_keys("9876543210")
+
+    # Click the Register button
+    driver.find_element(By.ID, "submitBtn").click()
+
+    time.sleep(2)
+
+    print("Registration submitted")
+
+finally:
+
+    driver.quit()
+```
+
+### Step 6: Run the program
+
+**[PowerShell – in the main working directory]**
+
+```powershell
+python test_registration.py
+```
+
+Expected behavior:
+- Edge opens the registration form.
+- Selenium enters the details.
+- Selenium clicks Register.
+- The form displays the success message.
+- The browser closes.
+
+---
+
+## Question B: Write a Selenium program to validate form inputs and verify the expected success message.
+
+### Step 1: Check the HTML file
+
+The `EventRegistrationForm.html` file should contain:
+
+```html
+<input type="text" id="firstName" required>
+<input type="text" id="lastName" required>
+<input type="email" id="email" required>
+<input type="tel" id="phNo" required>
+
+<button type="submit" id="submitBtn">Register</button>
+
+<p id="successmsg"></p>
+```
+
+It must also contain the JavaScript submit handler that displays:
+
+```text
+Thank You For Registering :)
+```
+
+The full working HTML file is provided in Set 2, Question A.
+
+### Step 2: Create the validation script
+
+**[VS Code – create `validate_registration.py`]**
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+driver = webdriver.Edge()
+
+try:
+
+    driver.get("http://localhost:8082")
+
+    # Enter valid details
+    driver.find_element(By.ID, "firstName").send_keys("Lahari")
+
+    driver.find_element(By.ID, "lastName").send_keys("K")
+
+    driver.find_element(By.ID, "email").send_keys("lahari@example.com")
+
+    driver.find_element(By.ID, "phNo").send_keys("9876543210")
+
+    # Submit the form
+    driver.find_element(By.ID, "submitBtn").click()
+
+    time.sleep(2)
+
+    # Read the success message
+    message = driver.find_element(By.ID, "successmsg").text
+
+    print("Success Message:", message)
+
+    # Verify the expected message
+    if message == "Thank You For Registering :)":
+        print("Test Passed")
+    else:
+        print("Test Failed")
+
+finally:
+
+    driver.quit()
+```
+
+### Step 3: Execute the script
+
+**[PowerShell – in the main working directory]**
+
+```powershell
+python validate_registration.py
+```
+
+Expected output:
+
+```text
+Success Message: Thank You For Registering :)
+Test Passed
+```
+
+### Step 4: Test invalid input (optional)
+
+Create a separate test to check that the required fields prevent submission when left empty.
+
+**[VS Code – create `test_invalid.py`]**
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+driver = webdriver.Edge()
+
+try:
+
+    driver.get("http://localhost:8082")
+
+    # Click Register without entering details
+    driver.find_element(By.ID, "submitBtn").click()
+
+    # Check whether the first required field is invalid
+    first_name = driver.find_element(By.ID, "firstName")
+
+    if first_name.get_attribute("required") is not None:
+        print("Required field validation is present")
+
+finally:
+
+    driver.quit()
+```
+
+Run:
+
+```powershell
+python test_invalid.py
+```
+
+This checks that the first name field is marked as required. It does not replace a full browser-level invalid-submission test.
+
+---
+
+## Viva: What is Test-Driven Development (TDD)?
+
+Test-Driven Development is a software development approach in which test cases are written before the actual application code.
+
+It follows three main steps:
+
+1. **Red:** Write a test that initially fails.
+2. **Green:** Write the minimum code required to pass the test.
+3. **Refactor:** Improve the code without changing its functionality.
+
+Benefits:
+- Improves code quality.
+- Detects errors early.
+- Encourages simple design.
+- Makes code easier to maintain.
+- Provides confidence when modifying software.
+
+---
+
+# SET 8 – Selenium Containerization
+
+## Question A: Explain how to containerize Selenium test scripts and dependencies using Docker.
+
+### Aim
+
+To create separate Docker containers for the web application, Selenium browser, and Selenium test runner.
+
+### Architecture
+
+```text
+                 Docker Network
+                       |
+       ---------------------------------
+       |               |               |
+  Web App         Selenium        Test Runner
+  Container       Container       Container
+  Nginx            Chrome          Python
+  Port 80          Port 4444       Selenium
+```
+
+### Step 1: Navigate to the main directory
+
+**[PowerShell]**
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 2: Create an application Dockerfile
+
+**[VS Code – create a file named `Dockerfile.app`]**
+
+```dockerfile
+# Use Nginx as the web server
+FROM nginx:alpine
+
+# Copy the registration page into the web server
+COPY EventRegistrationForm.html /usr/share/nginx/html/index.html
+
+# Expose the web server port
+EXPOSE 80
+
+# Keep Nginx running in the foreground
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Step 3: Build the application image
+
+**[PowerShell – in the main directory]**
+
+```powershell
+docker build -f Dockerfile.app -t my-web-app .
+```
+
+### Step 4: Pull the Selenium browser image
+
+```powershell
+docker pull selenium/standalone-chrome
+```
+
+### Step 5: Create a Docker network
+
+```powershell
+docker network create selenium-net
+```
+
+The network allows the application, Selenium browser, and test runner containers to communicate.
+
+### Step 6: Run the application container
+
+```powershell
+docker run -d --name my-web-app --network selenium-net -p 8082:80 my-web-app
+```
+
+### Step 7: Run the Selenium container
+
+```powershell
+docker run -d --name selenium --network selenium-net -p 4444:4444 --shm-size="2g" selenium/standalone-chrome
+```
+
+### Step 8: Verify the Selenium container
+
+```powershell
+docker ps
+```
+
+### Step 9: Open Selenium Grid
+
+**[Browser]**
+
+```text
+http://localhost:4444/ui/
+```
+
+You should see the Selenium Grid interface if the browser container has started successfully.
+
+### Step 10: Create the Selenium test file
+
+**[VS Code – create `test.py` in the main directory]**
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import time
+
+options = Options()
+
+# Connect to the Selenium browser container
+driver = webdriver.Remote(
+    command_executor="http://selenium:4444",
+    options=options
+)
+
+try:
+
+    # Open the application using its Docker network name
+    driver.get("http://my-web-app")
+
+    # Enter registration details
+    driver.find_element(By.ID, "firstName").send_keys("Lahari")
+
+    driver.find_element(By.ID, "lastName").send_keys("K")
+
+    driver.find_element(By.ID, "email").send_keys("lahari@example.com")
+
+    driver.find_element(By.ID, "phNo").send_keys("9876543210")
+
+    # Submit the form
+    driver.find_element(By.ID, "submitBtn").click()
+
+    time.sleep(2)
+
+    # Verify the success message
+    message = driver.find_element(By.ID, "successmsg").text
+
+    print("Success Message:", message)
+
+    if message == "Thank You For Registering :)":
+        print("Test Passed")
+    else:
+        print("Test Failed")
+
+finally:
+
+    driver.quit()
+```
+
+### Step 11: Create the test runner Dockerfile
+
+**[VS Code – create `Dockerfile.test` in the main directory]**
+
+```dockerfile
+# Use Python as the base image
+FROM python:3.12-slim
+
+# Set the working directory
+WORKDIR /tests
+
+# Install Selenium
+RUN pip install selenium
+
+# Copy the test script
+COPY test.py .
+
+# Execute the test
+CMD ["python", "test.py"]
+```
+
+### Step 12: Build the test runner image
+
+**[PowerShell – in the main directory]**
+
+```powershell
+docker build -f Dockerfile.test -t selenium-test .
+```
+
+### Step 13: Wait for Selenium to become ready
+
+```powershell
+docker logs selenium
+```
+
+Wait until Selenium reports that it is ready to accept connections.
+
+### Step 14: Run the test runner container
+
+```powershell
+docker run --rm --network selenium-net selenium-test
+```
+
+The test runner connects to the Selenium browser using the Docker network name `selenium`.
+
+### Step 15: Verify the result
+
+The PowerShell terminal should display the success message and test result.
+
+### Step 16: Check all running containers
+
+```powershell
+docker ps
+```
+
+### Step 17: Cleanup
+
+**[PowerShell]**
+
+```powershell
+docker stop my-web-app selenium
+```
+
+```powershell
+docker rm my-web-app selenium
+```
+
+```powershell
+docker network rm selenium-net
+```
+
+The `--rm` option automatically removes the test runner container after it finishes.
+
+---
+
+## Question B: Explain how to execute Selenium test cases in an isolated Docker container.
+
+### Step 1: Ensure Docker Desktop is running
+
+Open Docker Desktop and wait until the engine is ready.
+
+### Step 2: Navigate to the project directory
+
+**[PowerShell]**
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 3: Build the application image
+
+```powershell
+docker build -f Dockerfile.app -t my-web-app .
+```
+
+### Step 4: Build the test image
+
+```powershell
+docker build -f Dockerfile.test -t selenium-test .
+```
+
+### Step 5: Create the network
+
+```powershell
+docker network create selenium-net
+```
+
+### Step 6: Start the application container
+
+```powershell
+docker run -d --name my-web-app --network selenium-net -p 8082:80 my-web-app
+```
+
+### Step 7: Start the Selenium browser container
+
+```powershell
+docker run -d --name selenium --network selenium-net -p 4444:4444 --shm-size="2g" selenium/standalone-chrome
+```
+
+### Step 8: Check Selenium readiness
+
+```powershell
+docker logs selenium
+```
+
+Wait until the Selenium server is ready.
+
+### Step 9: Execute the test container
+
+```powershell
+docker run --rm --network selenium-net selenium-test
+```
+
+### Step 10: Verify the output
+
+The test should:
+1. Connect to the Selenium browser container.
+2. Open the web application.
+3. Enter registration details.
+4. Submit the form.
+5. Verify the success message.
+6. Close the browser session.
+
+### Step 11: Cleanup
+
+```powershell
+docker stop my-web-app selenium
+docker rm my-web-app selenium
+docker network rm selenium-net
+```
+
+**Result:** Selenium tests are executed in an isolated Docker container, without requiring the test runner to install a browser locally.
+
+---
+
+## Viva: Explain Ansible and Chef.
+
+### Ansible
+
+Ansible is an open-source automation and configuration management tool used to configure servers, deploy applications, and automate IT tasks.
+
+Features:
+1. Uses YAML playbooks.
+2. Agentless architecture.
+3. Uses SSH for communication with many Linux-based managed hosts.
+4. Supports application deployment.
+5. Automates repetitive tasks.
+
+### Chef
+
+Chef is a configuration management tool used to automate infrastructure and system configuration.
+
+Features:
+1. Uses Ruby-based configuration recipes.
+2. Uses cookbooks to organize configuration.
+3. Automates server setup.
+4. Maintains consistent infrastructure.
+5. Supports large-scale infrastructure management.
+
+### Difference
+
+| Ansible | Chef |
+|---|---|
+| Uses YAML playbooks | Uses Ruby-based recipes |
+| Generally agentless | Commonly uses a client-based model |
+| Easy to learn | Requires understanding of Chef and Ruby concepts |
+| Uses modules | Uses cookbooks and recipes |
+
+---
+
+# SET 9 – Running a Containerized Application and Selenium Tests
+
+## Question A: Explain how to run a containerized application and execute Selenium test cases.
+
+### Aim
+
+To run the Event Registration application in Docker and execute Selenium tests using separate containers.
+
+### Step 1: Start Docker Desktop
+
+Wait until Docker Engine is running.
+
+### Step 2: Navigate to the project directory
+
+**[PowerShell]**
+
+```powershell
+cd "C:\Users\lahar\OneDrive\Desktop\DevOps_Mid1_practice\mid2"
+```
+
+### Step 3: Verify the required files
+
+```powershell
+dir
+```
+
+Make sure the following files are present:
+
+```text
+EventRegistrationForm.html
+Dockerfile.app
+Dockerfile.test
+test.py
+```
+
+### Step 4: Build the web application image
+
+```powershell
+docker build -f Dockerfile.app -t my-web-app .
+```
+
+### Step 5: Build the Selenium test image
+
+```powershell
+docker build -f Dockerfile.test -t selenium-test .
+```
+
+### Step 6: Pull the Selenium browser image
+
+```powershell
+docker pull selenium/standalone-chrome
+```
+
+### Step 7: Create the Docker network
+
+```powershell
+docker network create selenium-net
+```
+
+### Step 8: Start the web application
+
+```powershell
+docker run -d --name my-web-app --network selenium-net -p 8082:80 my-web-app
+```
+
+### Step 9: Start the Selenium container
+
+```powershell
+docker run -d --name selenium --network selenium-net -p 4444:4444 --shm-size="2g" selenium/standalone-chrome
+```
+
+### Step 10: Verify the containers
+
+```powershell
+docker ps
+```
+
+### Step 11: Check Selenium readiness
+
+```powershell
+docker logs selenium
+```
+
+Wait until the Selenium server is ready.
+
+### Step 12: Open the application
+
+**[Browser]**
+
+```text
+http://localhost:8082
+```
+
+### Step 13: Execute the Selenium tests
+
+**[PowerShell]**
+
+```powershell
+docker run --rm --network selenium-net selenium-test
+```
+
+### Step 14: Verify the output
+
+Expected result:
+
+```text
+Success Message: Thank You For Registering :)
+Test Passed
+```
+
+### Step 15: Check the Selenium Grid
+
+**[Browser]**
+
+```text
+http://localhost:4444/ui/
+```
+
+### Step 16: Stop the containers
+
+**[PowerShell]**
+
+```powershell
+docker stop my-web-app selenium
+```
+
+### Step 17: Remove the containers
+
+```powershell
+docker rm my-web-app selenium
+```
+
+### Step 18: Remove the Docker network
+
+```powershell
+docker network rm selenium-net
+```
+
+**Result:** The Event Registration application runs inside a Docker container, and Selenium tests are executed through a separate containerized browser and test runner.
+
+---
+
+## Question B: Write a short lab implementation report for Selenium containerization.
+
+### Title
+
+Selenium Containerization Using Docker
+
+### Aim
+
+To containerize a web application and execute Selenium test cases in an isolated Docker environment.
+
+### Software Requirements
+
+1. Docker Desktop
+2. Python
+3. Selenium WebDriver
+4. Nginx
+5. Selenium Standalone Chrome image
+6. Visual Studio Code
+
+### Procedure
+
+1. Created an Event Registration Form using HTML, CSS, and JavaScript.
+2. Created a Dockerfile to containerize the web application using Nginx.
+3. Built the Docker image using the Docker build command.
+4. Pulled the Selenium Standalone Chrome image.
+5. Created a Docker network for communication between containers.
+6. Started the web application container.
+7. Started the Selenium browser container.
+8. Created a Python Selenium test script.
+9. Created a test runner Dockerfile.
+10. Built the Selenium test image.
+11. Executed the test runner container.
+12. Verified the form submission success message.
+13. Stopped and removed the containers.
+
+### Result
+
+The Event Registration application was successfully containerized using Docker. Selenium test cases were executed in an isolated container environment, and the form submission was verified successfully.
+
+---
+
+## Viva: Explain Chef recipes and SaltStack configuration management.
+
+### 1. What is a Chef recipe?
+
+A Chef recipe is a collection of instructions written in Ruby that describes how a system should be configured.
+
+It specifies resources such as:
+- Packages to install.
+- Files to create.
+- Services to start.
+- Users to configure.
+- Applications to deploy.
+
+### 2. What is a Chef cookbook?
+
+A cookbook is a collection of recipes, templates, files, and other configuration information used to manage infrastructure.
+
+### 3. What is SaltStack?
+
+SaltStack is an open-source configuration management and automation tool used to manage servers and infrastructure.
+
+It can automate:
+- Software installation.
+- Server configuration.
+- Application deployment.
+- Remote command execution.
+- System monitoring.
+
+### 4. Explain the SaltStack architecture.
+
+SaltStack commonly uses a master-minion architecture.
+
+1. **Salt Master:** Central system that controls managed machines.
+2. **Salt Minion:** Agent installed on managed machines.
+3. **Execution modules:** Perform tasks on managed systems.
+4. **States:** Define the desired configuration of systems.
+5. **Pillars:** Store configuration data and variables.
+
+### 5. Difference between Chef and SaltStack
+
+| Chef | SaltStack |
+|---|---|
+| Uses Ruby-based recipes | Uses YAML-based state files |
+| Uses cookbooks | Uses states and formulas |
+| Configuration management tool | Configuration management and remote execution tool |
+| Commonly uses a client-based model | Commonly uses master-minion architecture |
+
+---
+
+# IMPORTANT COMMAND REFERENCE
+
+Use this section when you need to revise commands quickly before the practical exam.
+
+## Git commands
+
+**[PowerShell – execute inside your Git project directory]**
+
+```powershell
+git init
+git status
+git add .
+git commit -m "Initial commit"
+git branch
+git branch feature
+git checkout feature
+git remote add origin <repository-url>
+git push -u origin main
+git pull origin main
+git clone <repository-url>
+```
+
+If the default branch is `master` instead of `main`, use the correct branch name.
+
+## Docker commands
+
+```powershell
+docker --version
+docker pull nginx:latest
+docker images
+docker build -t my-image .
+docker run -d --name my-container -p 8080:80 my-image
+docker ps
+docker ps -a
+docker logs my-container
+docker stop my-container
+docker start my-container
+docker rm my-container
+docker rmi my-image
+docker network ls
+docker network create my-network
+docker network rm my-network
+```
+
+## Kubernetes commands
+
+```powershell
+minikube start --driver=docker
+minikube status
+minikube stop
+minikube image load event-registration:v1
+minikube image ls
+kubectl version --client
+kubectl cluster-info
+kubectl get nodes
+kubectl get pods
+kubectl get pods -A
+kubectl get deployments
+kubectl get services
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl describe deployment registration-deployment
+kubectl scale deployment registration-deployment --replicas=3
+kubectl delete -f deployment.yaml
+kubectl delete -f service.yaml
+```
+
+## Selenium commands
+
+**[PowerShell]**
+
+```powershell
+pip install selenium
+python test_registration.py
+python validate_registration.py
+```
+
+**[PowerShell – Node.js Selenium project]**
+
+```powershell
+npm init -y
+npm install selenium-webdriver
+node test.js
+node clickButton.js
+```
+
+## Jenkins
+
+Jenkins is an automation server used to implement Continuous Integration and Continuous Delivery/Deployment (CI/CD).
+
+Typical pipeline:
+
+```text
+Developer commits code
+        |
+        v
+   Git Repository
+        |
+        v
+      Jenkins
+        |
+        v
+      Build
+        |
+        v
+       Test
+        |
+        v
+     Package
+        |
+        v
+      Deploy
+```
+
+---
+
+# COMMON ERRORS AND THEIR SOLUTIONS
+
+## 1. Docker command is not recognized
+
+**Error:** `docker is not recognized`
+
+Solution:
+1. Check whether Docker Desktop is installed.
+2. Open Docker Desktop.
+3. Wait for Docker Engine to start.
+4. Restart PowerShell.
+5. Run:
+
+```powershell
+docker --version
+```
+
+## 2. Docker Engine is not running
+
+**Error:** Cannot connect to the Docker daemon.
+
+Solution:
+1. Open Docker Desktop.
+2. Wait for the engine to start.
+3. Run:
+
+```powershell
+docker info
+```
+
+## 3. Dockerfile not found
+
+**Error:** `failed to read dockerfile`
+
+Solution:
+
+```powershell
+dir -Force
+```
+
+Check whether the file is named exactly:
+
+```text
+Dockerfile
+```
+
+It must not be named `Dockerfile.txt`.
+
+## 4. HTML file not found during Docker build
+
+**Error:** `COPY failed: file not found`
+
+Solution:
+
+```powershell
+dir
+```
+
+Check that `EventRegistrationForm.html` is in the same folder as the Dockerfile.
+
+The filename in the `COPY` command must exactly match the HTML filename.
+
+## 5. Container name already in use
+
+**Error:** The container name is already in use.
+
+Solution:
+
+```powershell
+docker ps -a
+```
+
+If the old container is no longer needed:
+
+```powershell
+docker stop registration-app
+docker rm registration-app
+```
+
+Then run the new container.
+
+## 6. Port is already allocated
+
+**Error:** Bind for 0.0.0.0:8082 failed.
+
+Solution:
+
+```powershell
+docker ps
+```
+
+Stop the container already using the port, or choose another available host port.
+
+## 7. Minikube is not installed
+
+**Error:** `minikube is not recognized`
+
+Install Minikube from:
+
+https://minikube.sigs.k8s.io/docs/start/
+
+After installation, close and reopen PowerShell.
+
+Verify:
+
+```powershell
+minikube version
+```
+
+## 8. Minikube node is not Ready
+
+Run:
+
+```powershell
+minikube status
+```
+
+If it is stopped:
+
+```powershell
+minikube start --driver=docker
+```
+
+Then:
+
+```powershell
+kubectl get nodes
+```
+
+## 9. Kubernetes image pull error
+
+If Kubernetes cannot find the local image, run:
+
+```powershell
+minikube image load event-registration:v1
+```
+
+Check:
+
+```powershell
+minikube image ls
+```
+
+Also verify that the Deployment uses the same image name and tag.
+
+## 10. Selenium cannot find an element
+
+Check:
+1. Whether the HTML file contains the element.
+2. Whether the element ID is correct.
+3. Whether the page has loaded.
+4. Whether the element is inside another frame.
+5. Whether the test is opening the correct application URL.
+
+For example, the following IDs must match the HTML:
+
+```text
+firstName
+lastName
+email
+phNo
+submitBtn
+successmsg
+```
+
+## 11. Selenium container cannot connect
+
+Check:
+
+```powershell
+docker ps
+docker logs selenium
+```
+
+Make sure:
+- Both containers use `selenium-net`.
+- Selenium is ready before running the test runner.
+- The test script uses `http://selenium:4444`.
+- The application URL inside the Docker network is `http://my-web-app`.
+
+---
+
+# FINAL FILE ORGANIZATION
+
+Keep your main working folder organized like this:
+
+```text
+mid2/
+│
+├── EventRegistrationForm.html
+├── Dockerfile
+├── Dockerfile.app
+├── Dockerfile.test
+│
+├── calculator.html
+│
+├── deployment.yaml
+├── service.yaml
+├── setup-kubernetes.ps1
+│
+├── test_registration.py
+├── validate_registration.py
+├── test_invalid.py
+├── test.py
+│
+└── SeleniumJS/
+    ├── package.json
+    ├── package-lock.json
+    ├── test.js
+    └── clickButton.js
+```
+
+The Java Selenium programs from Set 5 are maintained inside the NetBeans Maven project, not directly in this folder.
+
+**Important execution notes:**
+
+1. The Dockerfile from Set 2 is named `Dockerfile`; the separate application Dockerfile for Sets 8–9 is named `Dockerfile.app`.
+2. Set 3 and Set 4 use the `event-registration:v1` image. Build it and load it into Minikube before deploying.
+3. Set 4's Deployment and Service are separate YAML files.
+4. Sets 7–9 depend on the HTML form containing the IDs and success-message JavaScript shown in Set 2.
+5. Sets 8–9 use the Docker network name `selenium-net`.
+6. Do not delete images or files that you still need for later experiments.
+7. Run terminal commands in PowerShell unless a step explicitly says NetBeans, VS Code, or Browser.
+8. Save every file with the exact filename and extension shown. Avoid accidentally saving `.yaml` as `.yaml.txt` or `Dockerfile` as `Dockerfile.txt`.
+
+**End of Sets 1–9 Practical Guide.**
