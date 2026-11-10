@@ -1,0 +1,112 @@
+SET 1 
+Bit A: Write terminal commands to explore Docker commands for pulling a base image and listing active containers
+Bit B: Explain the steps to install Docker and verify its version.
+Viva: What is a hosted Git server?
+
+A)
+# STEP 1: Check Docker version
+docker --version
+
+# STEP 2: Check Docker system information
+docker info
+
+# STEP 3: Pull the Nginx base image from Docker Hub
+docker pull nginx:latest
+
+# STEP 4: List all downloaded Docker images
+docker images
+
+# STEP 5: Create and run an Nginx container
+docker run -d --name mynginx -p 8080:80 nginx:latest
+
+# STEP 6: List currently running containers
+docker ps
+
+# STEP 7: List all containers (including stopped containers)
+docker ps -a
+
+# STEP 8: Check Nginx container logs
+docker logs mynginx
+
+# STEP 9: Display detailed information about the container
+docker inspect mynginx
+
+# STEP 10: Access Nginx in the browser
+# Open http://localhost:8080
+
+# STEP 11: Execute a command inside the running container
+docker exec mynginx nginx -v
+
+# STEP 12: Stop the running Nginx container
+docker stop mynginx
+
+# STEP 13: Verify stopped container
+docker ps -a
+
+# STEP 14: Start the Nginx container again
+docker start mynginx
+
+# STEP 15: Verify the running container
+docker ps
+
+# STEP 16: Stop the Nginx container
+docker stop mynginx
+
+# STEP 17: Remove the Nginx container
+docker rm mynginx
+
+# STEP 18: Verify container removal
+docker ps -a
+
+# STEP 19: Remove the downloaded Nginx image (optional)
+docker rmi nginx:latest
+
+# STEP 20: Verify remaining Docker images
+docker images
+
+
+1b)
+# STEP 1: Check whether Docker is installed
+docker --version
+
+# STEP 2: Check Docker Compose version
+docker compose version
+
+# STEP 3: Display detailed Docker system information
+docker info
+
+# STEP 4: Check Docker client version
+docker version --format '{{.Client.Version}}'
+
+# STEP 5: Check Docker server (Engine) version
+docker version --format '{{.Server.Version}}'
+
+# STEP 6: Verify Docker service status
+Get-Service com.docker.service
+
+# STEP 7: Check whether Docker is running
+docker info
+
+# STEP 8: Pull a test Nginx image
+docker pull nginx:latest
+
+# STEP 9: Verify downloaded images
+docker images
+
+# STEP 10: Run a test Nginx container
+docker run -d --name test-nginx -p 8080:80 nginx:latest
+
+# STEP 11: Verify that the container is running
+docker ps
+
+# STEP 12: Test Nginx in the browser
+# Open http://localhost:8080
+
+# STEP 13: Stop the test container
+docker stop test-nginx
+
+# STEP 14: Remove the test container
+docker rm test-nginx
+
+# STEP 15: Verify container removal
+docker ps -a

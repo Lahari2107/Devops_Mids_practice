@@ -1,0 +1,325 @@
+Set 6
+ * Question A: Write a simple program in JavaScript and perform testing using Selenium.
+ * Question B: Write a Selenium automation script in JavaScript to locate a form element by its ID and click it.
+ * Viva: How does JavaScript testing integrate with automation tools like Selenium?
+
+
+A)
+Step 1: Create the HTML file
+Create a folder named Set6 and create a file named JavaScriptCalculator.html inside it.
+---------------------------
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Calculator</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .calculator {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            height: 50px;
+            font-size: 20px;
+            text-align: right;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 22%;
+            height: 50px;
+            font-size: 18px;
+            margin: 2px;
+            cursor: pointer;
+        }
+
+        .operator {
+            background-color: #d4edda;
+        }
+
+        .equals {
+            background-color: #76c7c0;
+            width: 48%;
+        }
+
+        .zero {
+            width: 48%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="calculator">
+
+        <input type="text" id="display" readonly>
+
+        <br>
+
+        <button onclick="clearDisplay()">C</button>
+        <button onclick="deleteLast()">←</button>
+        <button class="operator" onclick="appendToDisplay('/')">/</button>
+        <button class="operator" onclick="appendToDisplay('*')">*</button>
+
+        <br>
+
+        <button onclick="appendToDisplay('7')">7</button>
+        <button onclick="appendToDisplay('8')">8</button>
+        <button onclick="appendToDisplay('9')">9</button>
+        <button class="operator" onclick="appendToDisplay('-')">-</button>
+
+        <br>
+
+        <button onclick="appendToDisplay('4')">4</button>
+        <button onclick="appendToDisplay('5')">5</button>
+        <button onclick="appendToDisplay('6')">6</button>
+        <button class="operator" onclick="appendToDisplay('+')">+</button>
+
+        <br>
+
+        <button onclick="appendToDisplay('1')">1</button>
+        <button onclick="appendToDisplay('2')">2</button>
+        <button onclick="appendToDisplay('3')">3</button>
+        <button class="equals" onclick="calculateResult()">=</button>
+
+        <br>
+
+        <button class="zero" onclick="appendToDisplay('0')">0</button>
+        <button onclick="appendToDisplay('.')">.</button>
+
+    </div>
+
+    <script>
+        function clearDisplay() {
+            document.getElementById('display').value = '';
+        }
+
+        function deleteLast() {
+            var display = document.getElementById('display').value;
+            document.getElementById('display').value =
+                display.substring(0, display.length - 1);
+        }
+
+        function appendToDisplay(value) {
+            document.getElementById('display').value += value;
+        }
+
+        function calculateResult() {
+            var display = document.getElementById('display').value;
+
+            try {
+                document.getElementById('display').value = eval(display);
+            } catch (e) {
+                document.getElementById('display').value = 'Error';
+            }
+        }
+    </script>
+</body>
+</html>
+-----------------------------------
+
+Step 2: Run the JavaScript program
+1. Save JavaScriptCalculator.html.
+2. Open the folder in File Explorer.
+3. Double-click JavaScriptCalculator.html.
+4. The calculator opens in your browser.
+5. Test it manually by entering 10 + 5 and clicking =.
+6. The result should be 15.
+
+tep 3: Create a Java Selenium testing program
+The lab manual uses Java Selenium with Microsoft Edge to open the calculator webpage and print its title. 
+
+
+In your NetBeans project, create a Java class named TestCalculator and paste:
+
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+
+public class TestCalculator {
+
+    public static void main(String[] args) {
+
+        WebDriver driver = new EdgeDriver();
+
+        try {
+            // Open the JavaScript calculator
+            driver.get("file:///C:/DevOpsLab/Set6/JavaScriptCalculator.html");
+
+            // Print the page title
+            System.out.println("Title: " + driver.getTitle());
+
+            // Keep the browser open for 60 seconds
+            Thread.sleep(60000);
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+
+        } finally {
+            // Close the browser
+            driver.quit();
+        }
+    }
+}
+----------------------------------------
+
+Step 4: Execute the Selenium program
+1. Open the Java project in NetBeans.
+2. Ensure Selenium JAR files are added under Libraries.
+3. Ensure Microsoft Edge and a compatible Edge WebDriver are installed.
+4. Right-click TestCalculator.java.
+5. Select Run File or press Shift + F6.
+
+
+
+b)
+
+tep 1: Create a project folder
+Open VS Code → Terminal → New Terminal (PowerShell).
+mkdir Selenium-Form-Click
+cd Selenium-Form-Click
+
+
+Step 2: Initialize the Node.js project
+npm init -y
+
+
+Step 3: Install Selenium WebDriver
+npm install selenium-webdriver
+
+
+Step 4: Create the HTML form
+Inside the Selenium-Form-Click folder, create a file named index.html.
+
+Paste the following code:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Selenium Form Click</title>
+</head>
+<body>
+
+    <h2>Registration Form</h2>
+
+    <form>
+        <label>Name:</label>
+        <input type="text" id="name" placeholder="Enter your name">
+        <br><br>
+
+        <label>Email:</label>
+        <input type="email" id="email" placeholder="Enter your email">
+        <br><br>
+
+        <button type="button" id="submitBtn" onclick="showMessage()">
+            Submit
+        </button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        function showMessage() {
+            document.getElementById("message").innerHTML =
+                "Form submitted successfully!";
+        }
+    </script>
+
+</body>
+</html>
+
+
+Step 5: Create the Selenium automation script
+Create another file named formClick.js in the same folder.
+
+Paste the complete code:
+// Import Selenium WebDriver
+const { Builder, By, until } = require('selenium-webdriver');
+
+async function testFormClick() {
+
+    // Launch Google Chrome browser
+    let driver = await new Builder().forBrowser('chrome').build();
+
+    try {
+
+        // Open the HTML form
+        await driver.get('file://' + __dirname + '/index.html');
+
+        // Locate the button using its ID
+        let submitButton = await driver.findElement(By.id('submitBtn'));
+
+        // Wait until the button is clickable
+        await driver.wait(until.elementIsEnabled(submitButton), 5000);
+
+        // Click the button
+        await submitButton.click();
+
+        console.log("Submit button clicked successfully!");
+
+        // Verify the success message
+        let message = await driver.findElement(By.id('message'));
+
+        let actualMessage = await message.getText();
+
+        console.log("Message: " + actualMessage);
+
+        if (actualMessage === "Form submitted successfully!") {
+            console.log("Test Passed!");
+        } else {
+            console.log("Test Failed!");
+        }
+
+    } catch (error) {
+
+        console.log("Error:", error);
+
+    } finally {
+
+        // Close the browser
+        await driver.quit();
+
+    }
+}
+
+// Execute the test function
+testFormClick();
+
+
+Step 6: Check the project structure
+Your folder should look like this:
+Selenium-Form-Click/
+│
+├── node_modules/
+├── package.json
+├── package-lock.json
+├── index.html
+└── formClick.js
+
+
+Step 7: Execute the Selenium script
+In the VS Code terminal, make sure you are inside the Selenium-Form-Click folder.
+
+Execute:
+node formClick.js
+
+
+Chrome should open, load the registration form, locate the Submit button using its ID (submitBtn), click it, and close.
+Step 8: Expected output
+Submit button clicked successfully!
+Message: Form submitted successfully!
+Test Passed!

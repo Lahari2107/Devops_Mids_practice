@@ -1,0 +1,158 @@
+Set 4
+ * Question A: Write a Kubernetes YAML deployment configuration file to run and manage containerized pods.
+ * Question B: Write a Kubernetes service configuration file to expose a deployed containerized application externally.
+ * Viva: How do build servers handle managing build dependencies and plugins?
+
+A)
+
+# Navigate to the project directory
+cd Docker-Event-Registration
+--------------------------------------------
+deployment.yaml
+# Kubernetes Deployment Configuration
+
+apiVersion: apps/v1
+kind: Deployment
+
+# Deployment name
+metadata:
+  name: event-registration
+
+spec:
+  # Number of Pod replicas
+  replicas: 2
+
+  # Select Pods using the application label
+  selector:
+    matchLabels:
+      app: event-registration
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: event-registration
+
+    spec:
+      containers:
+        # Container configuration
+        - name: event-registration
+
+          # Docker image
+          image: my-web-app:v1
+
+          # Use the locally available image
+          imagePullPolicy: IfNotPresent
+
+          # Container port
+          ports:
+            - containerPort: 80
+----------------------------------------------------------------
+# Build the Docker image
+docker build -t my-web-app:v1 .
+
+# Verify the Docker image
+docker images
+minikube image load my-web-app:v1
+# Create the Kubernetes Deployment
+kubectl apply -f deployment.yaml
+# Display Deployments
+kubectl get deployments
+
+# Display Pods
+kubectl get pods
+
+# Display detailed Deployment information
+kubectl describe deployment event-registration
+# Scale the Deployment to 3 Pods
+kubectl scale deployment event-registration --replicas=3
+
+# Verify the Pods
+kubectl get pods
+
+# Check Deployment status
+kubectl rollout status deployment/event-registration
+# Display running Pods
+kubectl get pods
+
+# Display logs of a particular Pod
+kubectl logs <pod-name>
+
+# Update the Docker image
+kubectl set image deployment/event-registration event-registration=my-web-app:v1
+
+# Check rollout status
+kubectl rollout status deployment/event-registration
+
+# Delete the Kubernetes Deployment
+kubectl delete -f deployment.yaml
+
+# Verify deletion
+kubectl get deployments
+
+# Verify remaining Pods
+kubectl get pods
+
+
+
+
+
+
+
+b)
+
+# Navigate to the project directory
+cd Docker-Event-Registration
+
+----------------------------------------------------------------
+service.yaml
+
+# Kubernetes Service Configuration
+
+apiVersion: v1
+kind: Service
+
+# Service name
+metadata:
+  name: event-registration-service
+
+spec:
+  # Expose the application externally
+  type: NodePort
+
+  # Select the application Pods
+  selector:
+    app: event-registration
+
+  # Port configuration
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+      protocol: TCP
+---------------------------------------------------------------------
+# Create the Kubernetes Service
+kubectl apply -f service.yaml
+# Display Kubernetes Services
+kubectl get services
+
+# Display detailed Service information
+kubectl describe service event-registration-service
+# Check Deployments
+kubectl get deployments
+
+# Check running Pods
+kubectl get pods
+
+# Check Services
+kubectl get services
+
+http://localhost:30080
+# Open the application using Minikube Service
+minikube service event-registration-service
+
+# Delete the Kubernetes Service
+kubectl delete -f service.yaml
+
+# Verify Service deletion
+kubectl get services

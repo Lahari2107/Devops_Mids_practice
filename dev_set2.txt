@@ -1,0 +1,226 @@
+Set 2
+ * Question A: Develop a simple containerized application using Docker by writing a basic custom Dockerfile.
+ * Question B: Write the terminal commands to build a Docker image from a Dockerfile with a custom tag and run it on a specific port.
+ * Viva: What is the pull request model in version control systems like GitLab?
+
+
+a)
+
+# Create a project folder
+mkdir Docker-Event-Registration
+
+# Navigate into the folder
+cd Docker-Event-Registration
+
+# Open the folder in VS Code
+code .
+
+------------------------------------------------
+reg form (html)
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration Form</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .input-box {
+            margin-bottom: 15px;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .input-box label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .success-msg {
+            display: none;
+            text-align: center;
+            color: green;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+
+        <form id="regForm">
+
+            <h1>Event Registration</h1>
+
+            <div class="input-box">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+            </div>
+
+            <div class="input-box">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+            </div>
+
+            <div class="input-box">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="input-box">
+                <label for="phNo">Phone Number</label>
+                <input type="text" id="phNo" name="phNo"
+                       pattern="[0-9]{10}"
+                       title="Phone number must contain 10 digits"
+                       required>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Register
+            </button>
+
+            <div class="success-msg" id="successmsg">
+                Thank You For Registering :)
+            </div>
+
+        </form>
+
+    </div>
+
+    <script>
+        const form = document.getElementById('regForm');
+        const successmsg = document.getElementById('successmsg');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            successmsg.style.display = 'block';
+            form.reset();
+        });
+    </script>
+
+</body>
+</html>
+------------------------------------------------------------------
+
+notepad Dockerfile
+
+# Use the official Nginx image from Docker Hub
+FROM nginx:latest
+
+# Copy the HTML file into the Nginx container
+COPY EventRegistrationForm.html /usr/share/nginx/html/index.html
+
+# Expose port 8082
+EXPOSE 8082
+
+# Start Nginx in the foreground
+CMD ["nginx", "-g", "daemon off;"]
+
+-----------------------------------------------------------------
+# 1. Navigate to the project directory
+cd Docker-Event-Registration
+
+# 2. Build the custom Docker image
+docker build -t my-web-app .
+
+# 3. Verify the image
+docker images
+
+# 4. Run the container
+docker run -d --name event-registration -p 8082:80 my-web-app
+
+# 5. Check running containers
+docker ps
+
+# 6. Check container logs
+docker logs event-registration
+
+# 7. Stop the container
+docker stop event-registration
+
+# 8. Remove the container
+docker rm event-registration
+
+# 9. Verify removal
+docker ps -a
+
+
+b)
+
+# STEP 1: Navigate to the project directory
+cd Docker-Event-Registration
+
+# STEP 2: Verify the Dockerfile and HTML file
+dir
+
+# STEP 3: Build a Docker image with a custom tag
+docker build -t my-web-app:v1 .
+
+# STEP 4: Verify the created Docker image
+docker images
+
+# STEP 5: Run the Docker container on a specific port
+docker run -d --name event-registration -p 8082:80 my-web-app:v1
+
+# STEP 6: Check whether the container is running
+docker ps
+
+# STEP 7: Display container logs
+docker logs event-registration
+
+# STEP 8: Inspect container details
+docker inspect event-registration
+
+# STEP 9: Open the application in the browser
+# URL: http://localhost:8082
+
+# STEP 10: Stop the running container
+docker stop event-registration
+
+# STEP 11: Remove the container
+docker rm event-registration
+
+# STEP 12: Verify container removal
+docker ps -a

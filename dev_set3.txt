@@ -1,0 +1,226 @@
+Set 3
+ * Question A: Write the configuration steps to integrate Kubernetes and Docker using local container images.
+ * Question B: Write a simple container setup script to prepare a Docker-based application for a Kubernetes cluster environment.
+ * Viva: What is job chaining in build pipelines and why is it used?
+
+A)
+# 1. Check Docker installation
+docker --version
+
+# 2. Check Docker Engine
+docker info
+
+# 3. Check Minikube version (only if previously installed)
+minikube version
+
+# 4. Check kubectl version
+kubectl version --client
+
+# 5. List Kubernetes contexts
+kubectl config get-contexts
+
+# 6. Switch to Docker Desktop Kubernetes
+kubectl config use-context docker-desktop
+
+# 7. Check current Kubernetes context
+kubectl config current-context
+
+# 8. Check Kubernetes nodes
+kubectl get nodes
+
+# 9. Check cluster information
+kubectl cluster-info
+
+# 10. Check namespaces
+kubectl get namespaces
+
+# 11. Check system pods
+kubectl get pods -n kube-system
+
+# 12. Navigate to the Docker application folder
+cd Docker-Event-Registration
+
+# 13. Build the local Docker image
+docker build -t my-web-app:v1 .
+
+# 14. Verify local Docker images
+docker images
+
+# 15. Verify Docker containers
+docker ps -a
+
+# 16. Verify Kubernetes nodes again
+kubectl get nodes
+
+B)
+
+# Navigate to the application directory
+cd Docker-Event-Registration
+
+# Check the project files
+dir
+# Build the Docker image
+docker build -t my-web-app:v1 .
+
+# Verify the Docker image
+docker images
+
+
+# deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: event-registration
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: event-registration
+
+  template:
+    metadata:
+      labels:
+        app: event-registration
+
+    spec:
+      containers:
+        - name: event-registration
+          image: my-web-app:v1
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 80
+
+
+# service.yaml
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: event-registration-service
+
+spec:
+  type: NodePort
+
+  selector:
+    app: event-registration
+
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+----------------------------------------------------------------
+setup.ps1
+
+# ==========================================
+# Docker and Kubernetes Container Setup
+# ==========================================
+
+# STEP 1: Check Docker installation
+Write-Host "Checking Docker installation..."
+
+docker --version
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Docker is not installed or running."
+    exit 1
+}
+
+# STEP 2: Check Kubernetes connection
+Write-Host "Checking Kubernetes cluster..."
+
+kubectl get nodes
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Kubernetes cluster is not available."
+    exit 1
+}
+
+# STEP 3: Build Docker image
+Write-Host "Building Docker image..."
+
+docker build -t my-web-app:v1 .
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Docker image build failed."
+    exit 1
+}
+
+# STEP 4: Verify Docker image
+Write-Host "Checking Docker image..."
+
+docker images
+
+# STEP 5: Apply Kubernetes Deployment
+Write-Host "Creating Kubernetes Deployment..."
+
+kubectl apply -f deployment.yaml
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Deployment failed."
+    exit 1
+}
+
+# STEP 6: Apply Kubernetes Service
+Write-Host "Creating Kubernetes Service..."
+
+kubectl apply -f service.yaml
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Service creation failed."
+    exit 1
+}
+
+# STEP 7: Check Deployment status
+Write-Host "Checking Deployment..."
+
+kubectl rollout status deployment/event-registration
+
+# STEP 8: Display running Pods
+Write-Host "Checking Kubernetes Pods..."
+
+kubectl get pods
+
+# STEP 9: Display Services
+Write-Host "Checking Kubernetes Services..."
+
+kubectl get services
+
+# STEP 10: Display completion message
+Write-Host "Container setup completed successfully!"
+
+Write-Host "Application Service Port: 30080"
+-------------------------------------------------------
+
+kubectl config use-context docker-desktop
+kubectl config use-context minikube
+# Load the locally built image into Minikube
+minikube image load my-web-app:v1
+# Run the setup script
+.\setup.ps1
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+# Execute the setup script
+.\setup.ps1
+# Display Kubernetes Deployments
+kubectl get deployments
+
+# Display running Pods
+kubectl get pods
+
+# Display Kubernetes Services
+kubectl get services
+
+# Display detailed Pod information
+kubectl describe pods
+
+# Display Deployment status
+kubectl rollout status deployment/event-registration
+
+http://localhost:30080
+minikube service event-registration-service

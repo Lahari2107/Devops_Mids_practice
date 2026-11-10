@@ -1,0 +1,335 @@
+Set 7
+ * Question A: Write a Selenium test script to input text into a registration form field and submit it
+Step 1: Create the project folder
+Open VS Code → Terminal → PowerShell.
+mkdir Selenium-Registration-Test
+cd Selenium-Registration-Test
+
+
+Step 2: Initialize the Node.js project and install Selenium
+npm init -y
+npm install selenium-webdriver
+
+
+Step 3: Create the registration form
+Create a file named index.html inside the project folder.
+
+Paste this complete code:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration Form</title>
+</head>
+<body>
+
+    <h2>Student Registration Form</h2>
+
+    <form id="registrationForm">
+
+        <label>Name:</label>
+        <input type="text" id="name" placeholder="Enter your name" required>
+        <br><br>
+
+        <label>Email:</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+        <br><br>
+
+        <label>Phone:</label>
+        <input type="text" id="phone" placeholder="Enter phone number" required>
+        <br><br>
+
+        <button type="submit" id="submitBtn">Register</button>
+
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("registrationForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                document.getElementById("message").innerText =
+                    "Registration Successful!";
+            });
+    </script>
+
+</body>
+</html>
+
+
+Step 4: Create the Selenium test script
+Create a file named registrationTest.js in the same folder.
+
+Paste the following complete code:
+// Import Selenium WebDriver
+const { Builder, By, until } = require('selenium-webdriver');
+
+async function testRegistrationForm() {
+
+    // Launch Chrome browser
+    let driver = await new Builder().forBrowser('chrome').build();
+
+    try {
+
+        // Open the registration form
+        await driver.get('file://' + __dirname + '/index.html');
+
+        // Locate the name field and enter text
+        let nameField = await driver.findElement(By.id('name'));
+        await nameField.sendKeys('Lahari');
+
+        // Locate the email field and enter text
+        let emailField = await driver.findElement(By.id('email'));
+        await emailField.sendKeys('lahari@example.com');
+
+        // Locate the phone field and enter text
+        let phoneField = await driver.findElement(By.id('phone'));
+        await phoneField.sendKeys('9876543210');
+
+        // Locate the Register button and click it
+        let submitButton = await driver.findElement(By.id('submitBtn'));
+        await submitButton.click();
+
+        // Wait for the success message
+        let message = await driver.wait(
+            until.elementLocated(By.id('message')),
+            5000
+        );
+
+        // Get the success message
+        let result = await message.getText();
+
+        console.log("Registration Message: " + result);
+
+        // Verify the result
+        if (result === "Registration Successful!") {
+            console.log("Test Passed!");
+        } else {
+            console.log("Test Failed!");
+        }
+
+    } catch (error) {
+
+        console.log("Error:", error);
+
+    } finally {
+
+        // Close the browser
+        await driver.quit();
+
+    }
+}
+
+// Execute the test
+testRegistrationForm();
+
+
+Step 5: Check the project structure
+Selenium-Registration-Test/
+│
+├── node_modules/
+├── package.json
+├── package-lock.json
+├── index.html
+└── registrationTest.js
+
+
+Step 6: Execute the Selenium test
+In the VS Code terminal, execute:
+node registrationTest.js
+
+
+Step 7: Expected output
+Chrome opens automatically, enters the registration details, clicks the Register button, verifies the success message, and closes.
+
+Expected terminal output:
+Registration Message: Registration Successful!
+Test Passed!
+
+
+
+ * Question B: Write a Selenium test script that validates user inputs and checks for an expected success message on a web page.
+
+
+Step 1: Create the project folder
+Open VS Code → Terminal → PowerShell.
+mkdir Selenium-Input-Validation
+cd Selenium-Input-Validation
+
+
+Step 2: Initialize Node.js and install Selenium
+npm init -y
+npm install selenium-webdriver
+
+
+Step 3: Create the HTML registration form
+Create a file named index.html and paste this complete code:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Input Validation</title>
+</head>
+<body>
+
+    <h2>Registration Form</h2>
+
+    <form id="registrationForm">
+
+        <label>Name:</label>
+        <input type="text" id="name" placeholder="Enter your name">
+        <br><br>
+
+        <label>Email:</label>
+        <input type="email" id="email" placeholder="Enter your email">
+        <br><br>
+
+        <label>Phone:</label>
+        <input type="text" id="phone" placeholder="Enter 10-digit phone number">
+        <br><br>
+
+        <button type="submit" id="submitBtn">Register</button>
+
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("registrationForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                let name = document.getElementById("name").value.trim();
+                let email = document.getElementById("email").value.trim();
+                let phone = document.getElementById("phone").value.trim();
+
+                let message = document.getElementById("message");
+
+                if (name === "" || email === "" || phone === "") {
+                    message.innerText = "Please fill all fields!";
+                }
+                else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    message.innerText = "Please enter a valid email!";
+                }
+                else if (!/^\d{10}$/.test(phone)) {
+                    message.innerText = "Please enter a valid 10-digit phone number!";
+                }
+                else {
+                    message.innerText = "Registration Successful!";
+                }
+            });
+    </script>
+
+</body>
+</html>
+
+
+Step 4: Create the Selenium test script
+Create a file named validationTest.js in the same folder.
+
+Paste the following complete code:
+// Import Selenium WebDriver
+const { Builder, By, until } = require('selenium-webdriver');
+
+async function validateRegistrationForm() {
+
+    // Launch Chrome browser
+    let driver = await new Builder().forBrowser('chrome').build();
+
+    try {
+
+        // Open the registration form
+        await driver.get('file://' + __dirname + '/index.html');
+
+        // Enter valid name
+        await driver.findElement(By.id('name'))
+            .sendKeys('Lahari');
+
+        // Enter valid email
+        await driver.findElement(By.id('email'))
+            .sendKeys('lahari@example.com');
+
+        // Enter valid 10-digit phone number
+        await driver.findElement(By.id('phone'))
+            .sendKeys('9876543210');
+
+        // Click the Register button
+        await driver.findElement(By.id('submitBtn')).click();
+
+        // Wait for the message element
+        let messageElement = await driver.wait(
+            until.elementLocated(By.id('message')),
+            5000
+        );
+
+        // Get the displayed success message
+        let actualMessage = await messageElement.getText();
+
+        // Expected success message
+        let expectedMessage = 'Registration Successful!';
+
+        console.log('Actual Message: ' + actualMessage);
+
+        // Validate the expected message
+        if (actualMessage === expectedMessage) {
+            console.log('Test Passed!');
+            console.log('User inputs are valid.');
+        } else {
+            console.log('Test Failed!');
+            console.log('Expected success message was not displayed.');
+        }
+
+    } catch (error) {
+
+        console.log('Error:', error);
+
+    } finally {
+
+        // Close the browser
+        await driver.quit();
+
+    }
+}
+
+// Execute the test function
+validateRegistrationForm();
+
+
+Step 5: Check the folder structure
+Selenium-Input-Validation/
+│
+├── node_modules/
+├── package.json
+├── package-lock.json
+├── index.html
+└── validationTest.js
+
+
+Step 6: Execute the Selenium test
+In the VS Code terminal, execute:
+node validationTest.js
+
+
+Step 7: Expected output
+Chrome automatically opens the registration form, enters valid details, clicks Register, and checks the displayed message.
+Actual Message: Registration Successful!
+Test Passed!
+User inputs are valid.
+
+
+Experiment completed
+Step 8: Test invalid input (optional)
+To check whether validation works for invalid inputs, replace the email entry in validationTest.js:
+.sendKeys('invalid-email');
+
+
+Keep the other details valid and execute:
+node validationTest.js
+
+
+Expected output:
+Actual Message: Please enter a valid email!
+Test Failed!
+Expected success message was not displayed.

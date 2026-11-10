@@ -1,0 +1,330 @@
+SET 9
+ * Question A: Write a script demonstrating how to run a containerized application and execute Selenium tests against it.
+ * Question B: Write a short lab implementation report summarizing the steps for Selenium containerization and automated testing.
+Step 1: Open the existing project
+Open VS Code → Terminal → PowerShell.
+cd Selenium-Docker-Container
+
+
+Your project folder will contain:
+Selenium-Docker-Container/
+│
+├── index.html
+├── test.js
+├── package.json
+├── Dockerfile
+└── docker-compose.yml
+
+
+Step 2: Registration application – index.html
+Open index.html. Replace its entire contents with:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set 9 Selenium Testing</title>
+</head>
+<body>
+
+    <h2>Student Registration Form</h2>
+
+    <form id="registrationForm">
+
+        <label>Name:</label>
+        <input type="text" id="name" required>
+        <br><br>
+
+        <label>Email:</label>
+        <input type="email" id="email" required>
+        <br><br>
+
+        <button type="submit" id="submitBtn">Register</button>
+
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("registrationForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                document.getElementById("message").innerText =
+                    "Registration Successful!";
+            });
+    </script>
+
+</body>
+</html>
+
+
+Step 3: Selenium test script – test.js
+Replace the entire contents of test.js with:
+const { Builder, By, until } = require('selenium-webdriver');
+const assert = require('assert');
+
+// Wait until both the application and Selenium server are ready
+async function waitForServices() {
+
+    const appURL = 'http://app';
+    const seleniumURL = process.env.SELENIUM_REMOTE_URL;
+
+    for (let i = 0; i < 30; i++) {
+
+        try {
+            const appResponse = await fetch(appURL);
+            const seleniumResponse = await fetch(
+                seleniumURL + '/status'
+            );
+
+            const seleniumData = await seleniumResponse.json();
+
+            if (appResponse.ok && seleniumData.value.ready) {
+                console.log("Application and Selenium are ready!");
+                return;
+            }
+
+        } catch (error) {
+            // Retry until both services are ready
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    throw new Error("Application or Selenium service is unavailable.");
+}
+
+async function runSeleniumTests() {
+
+    let driver;
+
+    try {
+
+        // Wait for the required containers
+        await waitForServices();
+
+        // Connect to Chrome inside the Selenium container
+        driver = await new Builder()
+            .usingServer(process.env.SELENIUM_REMOTE_URL)
+            .forBrowser('chrome')
+            .build();
+
+        // Open the containerized application
+        await driver.get('http://app');
+
+        // TEST 1: Verify application title
+        let title = await driver.getTitle();
+
+        assert.strictEqual(title, 'Set 9 Selenium Testing');
+
+        console.log("Test 1 Passed: Application opened successfully.");
+
+        // TEST 2: Enter registration details
+        await driver.findElement(By.id('name'))
+            .sendKeys('Lahari');
+
+        await driver.findElement(By.id('email'))
+            .sendKeys('lahari@example.com');
+
+        let enteredName = await driver.findElement(By.id('name'))
+            .getAttribute('value');
+
+        assert.strictEqual(enteredName, 'Lahari');
+
+        console.log("Test 2 Passed: User details entered successfully.");
+
+        // TEST 3: Submit the registration form
+        await driver.findElement(By.id('submitBtn')).click();
+
+        let message = await driver.wait(
+            until.elementLocated(By.id('message')),
+            5000
+        );
+
+        let actualMessage = await message.getText();
+
+        assert.strictEqual(
+            actualMessage,
+            'Registration Successful!'
+        );
+
+        console.log("Test 3 Passed: Success message verified.");
+
+        console.log("All Selenium tests passed successfully!");
+
+    } catch (error) {
+
+        console.error("Test execution failed:", error);
+        process.exitCode = 1;
+
+    } finally {
+
+        // Close the browser session
+        if (driver) {
+            await driver.quit();
+        }
+
+    }
+}
+
+// Execute the test script
+runSeleniumTests();
+
+
+Step 4: Create the Dockerfile
+Create or replace the file named Dockerfile:
+# Use Node.js base image
+FROM node:20-bookworm-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy package file
+COPY package.json ./
+
+# Install Selenium dependencies
+RUN npm install
+
+# Copy Selenium test script
+COPY test.js ./
+
+# Execute automated tests
+CMD ["npm", "test"]
+
+
+Step 5: Create package.json
+Create or replace package.json:
+{
+  "name": "set9-selenium-testing",
+  "version": "1.0.0",
+  "description": "Run Selenium tests against a containerized application",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.27.0"
+  }
+}
+
+
+Step 6: Create docker-compose.yml
+Create or replace docker-compose.yml:
+services:
+
+  # Container 1: Registration application
+  app:
+    image: nginx:alpine
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+
+  # Container 2: Selenium Chrome browser
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+
+  # Container 3: Selenium test execution
+  test:
+    build: .
+    depends_on:
+      - app
+      - selenium
+    environment:
+      SELENIUM_REMOTE_URL: http://selenium:4444
+
+
+Step 7: Build and execute the application and tests
+Make sure Docker Desktop is running.
+
+Execute these commands in the VS Code PowerShell terminal:
+# Check Docker version
+docker --version
+
+# Check Docker Compose version
+docker compose version
+
+# Build the Selenium test image
+docker compose build
+
+# Start the application, Selenium and test containers
+# Execute tests and return the test container's exit code
+docker compose up --abort-on-container-exit --exit-code-from test
+
+
+Expected execution:
+1. Docker starts the Nginx registration application.
+2. Docker starts Selenium Standalone Chrome.
+3. Docker starts the test container.
+4. The JavaScript script connects to Selenium.
+5. Chrome opens the registration application.
+6. Selenium enters user details and submits the form.
+7. The script verifies the success message.
+Step 8: Expected output
+Application and Selenium are ready!
+
+Test 1 Passed: Application opened successfully.
+Test 2 Passed: User details entered successfully.
+Test 3 Passed: Success message verified.
+
+All Selenium tests passed successfully!
+
+
+Tests passed
+Step 9: Verify and clean up
+# List containers
+docker ps -a
+
+# View test container logs
+docker compose logs test
+
+# Stop and remove containers
+docker compose down
+
+
+Optional: Remove the locally built test image too.
+docker compose down --rmi local
+
+-------------------------------------
+
+B)
+# Lab Implementation Report – Selenium Containerization and Automated Testing
+
+### Aim
+To containerize a Selenium automation testing environment using Docker and execute automated test cases against a web application.
+
+### Tools and Technologies Used
+- JavaScript
+- Node.js
+- Selenium WebDriver
+- Docker
+- Docker Compose
+- Nginx
+- Chrome Browser
+
+### Implementation Steps
+
+1. Created a registration form using HTML with name and email input fields and a Register button.
+2. Developed a Selenium automation script using JavaScript to interact with the registration form.
+3. Created a Dockerfile to package Node.js, Selenium dependencies and the test script into a Docker image.
+4. Configured Docker Compose to run three containers:
+   - Application container using Nginx.
+   - Selenium container using Standalone Chrome.
+   - Test container to execute the JavaScript automation script.
+5. Built the Docker image using `docker compose build`.
+6. Started the containers and executed the Selenium tests using `docker compose up`.
+7. Verified the application title, user input and registration success message.
+8. Stopped and removed the containers using `docker compose down`.
+
+### Test Cases Performed
+
+| Test Case | Expected Result |
+|---|---|
+| Verify application title | Correct page title displayed |
+| Enter registration details | User details entered successfully |
+| Submit registration form | Registration success message displayed |
+
+### Result
+All three Selenium test cases were executed successfully inside Docker containers. The application and browser testing environment operated independently of the host system.
+
+### Conclusion
+Selenium containerization using Docker provides an isolated and consistent environment for automated web application testing. Docker Compose simplifies the management and execution of the application, browser and testing containers.

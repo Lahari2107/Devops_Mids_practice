@@ -1,0 +1,516 @@
+Set 8
+ * Question A: Perform Selenium containerization by packaging a testing script and its dependencies inside a Docker container.
+
+Step 1: Create the project folder
+Open VS Code → Terminal → PowerShell.
+mkdir Selenium-Docker-Container
+cd Selenium-Docker-Container
+
+
+Step 2: Create the registration form
+Create a file named index.html and paste:
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Docker Selenium Testing</title>
+</head>
+<body>
+
+    <h2>Student Registration Form</h2>
+
+    <form id="registrationForm">
+
+        <label>Name:</label>
+        <input type="text" id="name" required>
+        <br><br>
+
+        <label>Email:</label>
+        <input type="email" id="email" required>
+        <br><br>
+
+        <button type="submit" id="submitBtn">Register</button>
+
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("registrationForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                document.getElementById("message").innerText =
+                    "Registration Successful!";
+            });
+    </script>
+
+</body>
+</html>
+
+
+Step 3: Create the Selenium test script
+Create a file named test.js.
+
+This script connects to the Chrome browser running inside the Selenium Docker container.
+// Import Selenium WebDriver and assert module
+const { Builder, By } = require('selenium-webdriver');
+const assert = require('assert');
+
+async function waitForSelenium() {
+
+    const url = process.env.SELENIUM_REMOTE_URL;
+
+    // Wait until Selenium server is ready
+    for (let i = 0; i < 30; i++) {
+        try {
+            const response = await fetch(url + '/status');
+            const data = await response.json();
+
+            if (data.value && data.value.ready) {
+                console.log("Selenium server is ready!");
+                return;
+            }
+        } catch (error) {
+            // Try again if Selenium is not ready
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    throw new Error("Selenium server did not become ready.");
+}
+
+async function runTest() {
+
+    let driver;
+
+    try {
+
+        // Wait for Selenium server
+        await waitForSelenium();
+
+        // Connect to remote Chrome browser
+        driver = await new Builder()
+            .usingServer(process.env.SELENIUM_REMOTE_URL)
+            .forBrowser('chrome')
+            .build();
+
+        // Open the registration application
+        await driver.get('http://app');
+
+        // Enter registration details
+        await driver.findElement(By.id('name'))
+            .sendKeys('Lahari');
+
+        await driver.findElement(By.id('email'))
+            .sendKeys('lahari@example.com');
+
+        // Click the Register button
+        await driver.findElement(By.id('submitBtn')).click();
+
+        // Retrieve the success message
+        let message = await driver.findElement(By.id('message'));
+
+        let actualMessage = await message.getText();
+
+        console.log("Actual Message: " + actualMessage);
+
+        // Validate the expected result
+        assert.strictEqual(
+            actualMessage,
+            'Registration Successful!'
+        );
+
+        console.log("Test Passed!");
+        console.log("Selenium test executed successfully inside Docker.");
+
+    } catch (error) {
+
+        console.error("Test Failed:", error);
+        process.exitCode = 1;
+
+    } finally {
+
+        // Close browser session
+        if (driver) {
+            await driver.quit();
+        }
+
+    }
+}
+
+// Execute the test
+runTest();
+
+
+Step 4: Create package.json
+Create a file named package.json.
+{
+  "name": "selenium-docker-testing",
+  "version": "1.0.0",
+  "description": "Selenium automation testing using Docker",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.27.0"
+  }
+}
+
+
+Step 5: Create the Dockerfile
+Create a file named Dockerfile (without any extension).
+# Use Node.js as the base image
+FROM node:20-bookworm-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json
+COPY package.json ./
+
+# Install project dependencies
+RUN npm install
+
+# Copy Selenium test script
+COPY test.js ./
+
+# Execute the Selenium test
+CMD ["npm", "test"]
+
+
+This Dockerfile packages Node.js, Selenium WebDriver and the testing script into a Docker image.
+Step 6: Create the Docker Compose file
+Create a file named docker-compose.yml.
+services:
+
+  # Registration application container
+  app:
+    image: nginx:alpine
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+
+  # Selenium Chrome browser container
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+
+  # Selenium test execution container
+  test:
+    build: .
+    depends_on:
+      - app
+      - selenium
+    environment:
+      SELENIUM_REMOTE_URL: http://selenium:4444
+
+
+How the containers work:
+- app: Runs the registration webpage using Nginx.
+- selenium: Provides the Chrome browser and Selenium server.
+- test: Runs your JavaScript Selenium automation script.
+Docker Compose connects these containers through a shared network.
+Step 7: Check your project structure
+Your folder should look like this:
+Selenium-Docker-Container/
+│
+├── index.html
+├── test.js
+├── package.json
+├── Dockerfile
+└── docker-compose.yml
+
+
+Step 8: Build and run the Docker containers
+Make sure Docker Desktop is running.
+
+In the VS Code terminal, execute:
+# Check Docker installation
+docker --version
+
+# Check Docker Compose
+docker compose version
+
+# Build the test image and start all containers
+docker compose up --build --abort-on-container-exit --exit-code-from test
+
+
+Docker will:
+1. Download the required base images.
+2. Build the Selenium test image.
+3. Start the registration application.
+4. Start the Selenium Chrome browser.
+5. Execute the JavaScript test inside the test container.
+6. Display the test result in the terminal.
+Step 9: Expected output
+You should see output similar to:
+Selenium server is ready!
+Actual Message: Registration Successful!
+Test Passed!
+Selenium test executed successfully inside Docker.
+
+
+Experiment completed
+Step 10: Verify and clean up
+To check the containers:
+docker ps -a
+
+
+To view the test container logs:
+docker compose logs test
+
+
+To stop and remove the containers:
+docker compose down
+
+
+To remove the locally built test image as well (optional):
+docker compose down --rmi local
+
+
+
+
+------------------------------------------------------
+
+* Question B: Write a script or command set to execute Selenium automated test cases inside an isolated container environment.
+Step 1: Open the existing project
+Open VS Code → Terminal → PowerShell.
+cd Selenium-Docker-Container
+
+
+Check the files:
+dir
+
+
+You should have:
+Selenium-Docker-Container/
+│
+├── index.html
+├── test.js
+├── package.json
+├── Dockerfile
+└── docker-compose.yml
+
+
+Step 2: Update the Selenium test script
+Open test.js and replace its entire contents with the following code.
+
+This script performs three automated test cases:
+1. Checks whether the registration page opens.
+2. Enters user details into the form.
+3. Submits the form and verifies the success message.
+const { Builder, By, until } = require('selenium-webdriver');
+const assert = require('assert');
+
+async function waitForSelenium() {
+
+    const url = process.env.SELENIUM_REMOTE_URL;
+
+    // Wait until Selenium server is ready
+    for (let i = 0; i < 30; i++) {
+        try {
+            const response = await fetch(url + '/status');
+            const data = await response.json();
+
+            if (data.value && data.value.ready) {
+                console.log("Selenium server is ready!");
+                return;
+            }
+        } catch (error) {
+            // Retry if Selenium is not ready
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    throw new Error("Selenium server is not available.");
+}
+
+async function runTests() {
+
+    let driver;
+
+    try {
+
+        await waitForSelenium();
+
+        // Connect to Chrome running inside Selenium container
+        driver = await new Builder()
+            .usingServer(process.env.SELENIUM_REMOTE_URL)
+            .forBrowser('chrome')
+            .build();
+
+        // Open registration page
+        await driver.get('http://app');
+
+        // TEST CASE 1: Verify page title
+        let title = await driver.getTitle();
+
+        assert.strictEqual(title, 'Docker Selenium Testing');
+
+        console.log("Test Case 1 Passed: Page title verified.");
+
+        // TEST CASE 2: Enter registration details
+        await driver.findElement(By.id('name'))
+            .sendKeys('Lahari');
+
+        await driver.findElement(By.id('email'))
+            .sendKeys('lahari@example.com');
+
+        let enteredName = await driver.findElement(By.id('name')).getAttribute('value');
+
+        assert.strictEqual(enteredName, 'Lahari');
+
+        console.log("Test Case 2 Passed: User input verified.");
+
+        // TEST CASE 3: Submit the registration form
+        await driver.findElement(By.id('submitBtn')).click();
+
+        let message = await driver.wait(
+            until.elementLocated(By.id('message')),
+            5000
+        );
+
+        let actualMessage = await message.getText();
+
+        assert.strictEqual(
+            actualMessage,
+            'Registration Successful!'
+        );
+
+        console.log("Test Case 3 Passed: Success message verified.");
+
+        console.log("All Selenium test cases passed!");
+
+    } catch (error) {
+
+        console.error("Test execution failed:", error);
+        process.exitCode = 1;
+
+    } finally {
+
+        // Close browser session
+        if (driver) {
+            await driver.quit();
+        }
+
+    }
+}
+
+runTests();
+
+
+Step 3: Verify the Dockerfile
+Open Dockerfile and ensure it contains:
+# Use Node.js base image
+FROM node:20-bookworm-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy package file
+COPY package.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy Selenium test script
+COPY test.js ./
+
+# Run automated tests
+CMD ["npm", "test"]
+
+
+Step 4: Verify package.json
+Open package.json and ensure it contains:
+{
+  "name": "selenium-docker-testing",
+  "version": "1.0.0",
+  "description": "Selenium automated testing inside Docker",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.27.0"
+  }
+}
+
+
+Step 5: Verify docker-compose.yml
+Open docker-compose.yml and ensure it contains:
+services:
+
+  # Registration application
+  app:
+    image: nginx:alpine
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+
+  # Selenium Chrome browser
+  selenium:
+    image: selenium/standalone-chrome:latest
+    shm_size: 2gb
+
+  # Automated test execution
+  test:
+    build: .
+    depends_on:
+      - app
+      - selenium
+    environment:
+      SELENIUM_REMOTE_URL: http://selenium:4444
+
+
+Step 6: Execute the automated test cases
+Make sure Docker Desktop is running.
+
+Execute these commands in the VS Code PowerShell terminal:
+# Check Docker version
+docker --version
+
+# Check Docker Compose version
+docker compose version
+
+# Build the Selenium test image
+docker compose build
+
+# Execute automated test cases inside containers
+docker compose up --abort-on-container-exit --exit-code-from test
+
+
+What happens?
+1. Docker starts the registration application container.
+2. Docker starts the Selenium Chrome container.
+3. The test container connects to Selenium.
+4. Selenium launches Chrome inside its container.
+5. The test script executes all three test cases.
+6. Test results are displayed in the terminal.
+Step 7: Expected output
+Selenium server is ready!
+
+Test Case 1 Passed: Page title verified.
+Test Case 2 Passed: User input verified.
+Test Case 3 Passed: Success message verified.
+
+All Selenium test cases passed!
+
+
+Experiment completed
+Step 8: Verify containers and logs
+# List all containers
+docker ps -a
+
+# View test container logs
+docker compose logs test
+
+
+Step 9: Stop and remove containers
+# Stop and remove all experiment containers
+docker compose down
+
+
+Optional: Remove the locally built test image too.
+docker compose down --rmi local
